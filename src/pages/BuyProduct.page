@@ -1,0 +1,217 @@
+<apex:page controller="BuyProductController">
+<html>
+    <head>
+      <meta charset="utf-8" />
+      <title>Buy Product</title>
+      <apex:slds />
+    </head>
+    <body>
+        
+        <!-- Header -->
+        <div class="slds-page-header">
+          <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title slds-text-heading_large slds-text-align_center slds-grid slds-grid_align-spread">
+                <div class="slds-col slds-col_bump-right slds-col_bump-left">
+                    Contact Information
+                </div>
+                <div class="slds-col slds-col_bump-right slds-col_bump-left">
+                    Product Information
+                </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="slds-grid slds-wrap  slds-p-around_xx-large">
+            <apex:pageMessages id="feedback" escape="false" />
+            
+            <!-- Left side -->
+            <div class="slds-size_1-of-2 slds-p-left_xx-large">
+                <div class="slds-form slds-form_horizontal">
+                    
+                    <!-- Email -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="email">Email</label>
+                        <div class="slds-form-element__control">
+                            <input type="text" id="email" oninput="email_validation(this)" class="slds-input" />
+                        </div>
+                    </div>
+                    
+                    <!-- First Name -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="first_name">First Name</label>
+                        <div class="slds-form-element__control">
+                            <input type="text" id="first_name" class="slds-input" />
+                        </div>
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="last_name">Last Name
+                            <abbr class="slds-required" title="required">* </abbr></label>
+                        <div class="slds-form-element__control">
+                            <input type="text" id="last_name" class="slds-input" />
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Right side -->
+            <div class="slds-size_1-of-2">
+                <div class="slds-form slds-form_horizontal slds-p-left_xx-large">
+                    
+                    <!-- Product Name -->
+                    <div class="slds-form-element ">
+                        <label class="slds-form-element__label">Product Name</label>
+                        <div class="slds-form-element__control">
+                            {! product.Product_Name__c }
+                        </div>
+                    </div>
+                    
+                    <!-- Cost -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Cost</label>
+                        <div class="slds-form-element__control">
+                            {! product.Unit_Price__c } $
+                        </div>
+                    </div>
+                    
+                    <!-- Unit Count -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="unit_count">Unit Count</label>
+                        <div class="slds-form-element__control">
+                            <input type="text" id="unit_count" oninput="recalculation()" pattern="" class="slds-input" value="1"/>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Amount -->
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Total Amount</label>
+                        <div id="total_amount" class="slds-form-element__control">
+                            {! product.Unit_Price__c } $
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="slds-docked-form-footer">
+        	<a class="slds-button slds-button_neutral" href="/apex/ProductList">To Shopping</a>
+        	<button type="button" onclick="buy()" class="slds-button slds-button_brand">Buy</button>
+        </div>
+        
+        <!-- Modal message -->
+        <div id="modal-message" class="slds-hide" style="height: 640px;">
+          <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+              <header class="slds-modal__header">
+              	<h2 class="slds-text-heading_medium slds-hyphenate">Message</h2>
+              </header>
+              <div class="slds-modal__content slds-p-around_medium" id="modal-message-content">
+                <!-- Here will be message -->
+              </div>
+              <footer class="slds-modal__footer">
+              	<a class="slds-button slds-button_neutral" href="/apex/ProductList">To Shopping</a>
+                <button class="slds-button slds-button_brand" onclick="hide('modal-message')">
+              		Close
+              	</button>
+              </footer>
+            </div>
+          </section>
+          <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+        
+        <apex:form >
+            <apex:actionFunction name="buyProduct"
+                                 action="{! buyProduct }"
+                                 oncomplete="onComplete('{! buyingStatus }')"
+                                 rendered="true"
+                                 reRender="modal-message">
+                <apex:param value="" name="email"/>
+                <apex:param value="" name="firstName"/>
+                <apex:param value="" name="lastName"/>
+                <apex:param value="" name="unitCount"/>
+            </apex:actionFunction>
+        </apex:form>
+        
+        <!-- TODO: transfer script to Static Resources -->
+        <script>
+        	
+        	// recalculation of total amount
+            function recalculation() {
+                let unit_count = document.getElementById("unit_count").value;
+                document.getElementById("total_amount").innerHTML = unit_count * {! product.Unit_Price__c } + " $";
+            }
+        	
+        	function buy(){
+                let email       = document.getElementById("email").value;
+                let first_name  = document.getElementById("first_name").value;
+                let last_name   = document.getElementById("last_name").value;
+                let unit_count  = document.getElementById("unit_count").value;
+                
+                if(field_validation()){
+                    buyProduct(email, first_name, last_name, unit_count);
+                } else {
+                	show("modal-message", "Check the correctness of the fields");
+                }
+            }
+        	
+        	// on complete of buying
+            function onComplete( status ){
+                let message = "";
+                
+                // status - status of buying
+                if(status){
+                    message = "Success";
+                } else {
+                    message = "Failure";
+                }
+                
+                // show modals
+                show("modal-message", message);
+            }
+        	
+        	// show modals
+            function show(elem_id, message){
+                // write message to modals   
+                let content = document.getElementById("modal-message-content");
+                content.innerHTML = message;
+                
+                document.getElementById(elem_id).className = "slds-show";
+            }
+        
+        	// hide modals
+            function hide(elem_id){
+                document.getElementById(elem_id).className = "slds-hide";
+            }
+        	
+            // validation :
+        	// -email field
+        	// -last name field (requiered field)
+        	function field_validation(){
+                
+                let isGoodEmail = isEmail(document.getElementById('email'));
+                let isNotBlankLastNameField = document.getElementById('last_name').value.length != 0;
+                
+                if(isGoodEmail & isNotBlankLastNameField){
+                    return true;
+                }else{
+                	return false;
+                }
+            }
+        	
+        	function isEmail(email_input){
+            	let re = /^(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
+  				
+                if(re.test(email_input.value)){
+                	return true;
+                }else{
+                	return false;
+                }
+            }
+        </script>
+    </body>
+</html>   
+</apex:page>

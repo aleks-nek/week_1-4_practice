@@ -1,0 +1,58 @@
+<apex:page controller="ProductListController">
+    <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Product List</title>
+          <apex:slds />
+        </head>
+        <body>
+            <div class="slds-scope">
+                <h1 class="slds-page-header__title">
+                    Product List
+                </h1>
+                <table class="slds-table slds-table_bordered slds-table_fixed-layout slds-table_cell-buffer slds-no-row-hover">
+                    <thead>
+                        <tr class="slds-text-heading_label">
+                            <th class="slds-col slds-size_1-of-12 slds-text-title_caps" scope="col">Image</th>
+                            <th class="slds-col slds-size_1-of-12 slds-text-title_caps" scope="col"></th>
+                            <th class="slds-col slds-size_3-of-12 slds-text-title_caps" scope="col">Title</th>
+                            <th class="slds-col slds-size_5-of-12 slds-text-title_caps" scope="col">Descrption</th>
+                            <th class="slds-col slds-size_1-of-12 slds-text-title_caps" scope="col">Cost</th>
+                            <th class="slds-col slds-size_1-of-12 slds-text-title_caps" scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat var="p" value="{! products }">
+                            <tr scope="row">
+                                <td class="slds-cell-wrap">
+                                    <apex:image url="{! p.Image_Url__c }" alt="Product image" width="80"/>
+                                </td>
+                                <td class="slds-cell-wrap">
+                                    <apex:outputLink value="{! URLFOR($Page.ProductDetail, null, [id = p.Id]) }" target="_blank">{! p.Product_Name__c }</apex:outputLink>
+                                </td>
+                                <td class="slds-cell-wrap">
+                                    <apex:outputText value="{! p.Title__c}"></apex:outputText>
+                                </td>
+                                <td class="slds-cell-wrap" id="description">
+                                    {! LEFT(p.Product_Description__c, 100) }
+                                    <apex:outputPanel rendered="{! (LEN(p.Product_Description__c) > 100)}">
+                                        ... 
+                                        <apex:outputLink value="{! URLFOR($Page.ProductDetail, null, [id = p.Id]) }">More</apex:outputLink>
+                                    </apex:outputPanel>
+                                </td>
+                                <td class="slds-cell-wrap">
+                                    <apex:outputText value="{0, number, ###,##0.00} $">
+                                        <apex:param value="{! p.Unit_Price__c }"/>
+                                    </apex:outputText>
+                                </td>
+                                <td class="slds-cell-wrap">
+                                    <a class="slds-button slds-button_brand" href="/apex/BuyProduct?id={! p.Id }">Buy</a>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+        </body>
+    </html>
+</apex:page>
